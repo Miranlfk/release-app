@@ -1,1 +1,1 @@
-# release-app
+Testing Ballerina Image signing using Cosign by Sigstore in Github Container Registry
