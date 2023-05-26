@@ -1,0 +1,142 @@
+name: Publish Image and Release
+
+on:
+  schedule:
+    - cron: '30 7 * * *'
+  push:
+    branches: [ "master" ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@f3c664df7af409cb4873aa5068053ba9d61a57b6 #v2.6.0
+        with:
+          cosign-release: 'v1.13.1'
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@79abd3f86f79a9d68a23c75a09a9a85889262adf
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Sign the published Docker image
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: echo "${{ steps.meta.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push.outputs.digest }}
+
+      - name: Archive site content
+        uses: thedoctor0/zip-release@master
+        with:
+          filename: Ballerina.zip
+
+      - name: Create GitHub release
+        id: new-test-release-cosign
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
+
+      - name: Upload asset to GitHub release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.new-test-release-cosign.outputs.upload_url }}
+          asset_path: ./Ballerina.zip
+          asset_name: Ballerina-v${{ github.run_number }}.zip
+          asset_content_type: application/zip
+
+      - name: cosign-installer
+        uses: sigstore/cosign-installer@v3.0.3
+
+      - name: Sign the Release Artifact
+        id: sign-display-output
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          echo 'y' | cosign sign-blob Ballerina.zip --output-certificate cert.pem --output-signature sig 
+          
+      - name: Verify the Release Artifact
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          cosign verify-blob Ballerina.zip --output-certificate cert.pem --output-signature sig --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/main --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+    
+      - name: Create Verify Text File
+        run: 'echo "cosign verify-blob Ballerina.zip --output-certificate cert.pem --output-signature sig --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/main --certificate-oidc-issuer=https://token.actions.githubusercontent.com" > verify.txt'
+        
+      - name: Upload Signature to GitHub release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.new-test-release-cosign.outputs.upload_url }}
+          asset_path: ./verify.txt
+          asset_name: verify-Ballerina.txt
+          asset_content_type: application/octet-stream
+          
+      - name: Upload Certifacte to GitHub release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.new-test-release-cosign.outputs.upload_url }}
+          asset_path: ./cert.pem
+          asset_name: cert.pem
+          asset_content_type: application/octet-stream
+
+      - name: Upload Signature to GitHub release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.new-test-release-cosign.outputs.upload_url }}
+          asset_path: ./sig
+          asset_name: sig
+          asset_content_type: application/octet-stream    
