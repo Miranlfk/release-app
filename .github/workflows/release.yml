@@ -100,16 +100,16 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          echo 'y' | cosign sign-blob Ballerina.zip --output-certificate cert.pem --output-signature sig 
+          echo 'y' | cosign sign-blob Ballerina.zip --bundle Ballerina.bundle 
           
       - name: Verify the Release Artifact
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign verify-blob Ballerina.zip --output-certificate cert.pem --output-signature sig --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+          cosign verify-blob Ballerina.zip --bundle Ballerina.bundle --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com
     
       - name: Create Verify Text File
-        run: 'echo "cosign verify-blob Ballerina.zip --output-signature sig --output-certificate cert.pem --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com" > verify.txt'
+        run: 'echo "cosign verify-blob Ballerina.zip --bundle Ballerina.bundle --output-certificate cert.pem --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com" > verify.txt'
         
       - name: Upload Signature to GitHub release
         uses: actions/upload-release-asset@v1
@@ -127,16 +127,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.new-test-release-cosign.outputs.upload_url }}
-          asset_path: ./cert.pem
-          asset_name: cert.pem
+          asset_path: ./--bundle Ballerina.bundle
+          asset_name: --bundle Ballerina.bundle
           asset_content_type: application/octet-stream
-
-      - name: Upload Signature to GitHub release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.new-test-release-cosign.outputs.upload_url }}
-          asset_path: ./sig
-          asset_name: sig
-          asset_content_type: application/octet-stream    
