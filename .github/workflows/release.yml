@@ -31,7 +31,8 @@ jobs:
       - name: Sign the published Docker image
         env:
           COSIGN_EXPERIMENTAL: "true"
-        run: cosign sign ${{ env.REGISTRY }}/${{ env.ACTOR }}/${{ env.IMAGE_NAME }}:v${{ github.run_number }}
+        run: |
+          echo 'y' | cosign sign ${{ env.REGISTRY }}/${{ env.ACTOR }}/${{ env.IMAGE_NAME }}:v${{ github.run_number }}
 
       - name: Archive site content
         uses: thedoctor0/zip-release@master
