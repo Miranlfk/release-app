@@ -16,7 +16,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build the Ballerina Docker image
         run: |
@@ -56,9 +56,6 @@ jobs:
           asset_path: ./Ballerina.zip
           asset_name: Ballerina-v${{ github.run_number }}.zip
           asset_content_type: application/zip
-
-      - name: cosign-installer
-        uses: sigstore/cosign-installer@v3.0.3
 
       - name: Sign the Release Artifact
         id: sign-display-output
