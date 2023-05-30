@@ -100,16 +100,16 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          echo 'y' | cosign sign-blob Ballerina.zip --bundle Ballerina.bundle 
+          echo 'y' | cosign sign-blob Ballerina.zip --bundle Ballerina-v${{ github.run_number }}.bundle 
           
       - name: Verify the Release Artifact
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign verify-blob Ballerina.zip --bundle Ballerina.bundle --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+          cosign verify-blob Ballerina.zip --bundle Ballerina-v${{ github.run_number }}.bundle --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com
     
       - name: Create Verify Text File
-        run: 'echo "cosign verify-blob Ballerina.zip --bundle Ballerina.bundle --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com" > verify.txt'
+        run: 'echo "cosign verify-blob Ballerina.zip --bundle Ballerina-v${{ github.run_number }}.bundle --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com" > verify.txt'
         
       - name: Upload Signature to GitHub release
         uses: actions/upload-release-asset@v1
@@ -127,6 +127,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.new-test-release-cosign.outputs.upload_url }}
-          asset_path: ./Ballerina.bundle
-          asset_name: Ballerina.bundle
+          asset_path: ./Ballerina-v${{ github.run_number }}.bundle
+          asset_name: Ballerina-v${{ github.run_number }}.bundle
           asset_content_type: application/octet-stream
