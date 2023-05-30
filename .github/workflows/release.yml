@@ -106,10 +106,10 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign verify-blob Ballerina.zip --output-signature sig --output-certificate cert.pem --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/main --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+          cosign verify-blob Ballerina.zip --output-certificate cert.pem --output-signature sig --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com
     
       - name: Create Verify Text File
-        run: 'echo "cosign verify-blob Ballerina.zip --output-signature sig --output-certificate cert.pem --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/main --certificate-oidc-issuer=https://token.actions.githubusercontent.com" > verify.txt'
+        run: 'echo "cosign verify-blob Ballerina.zip --output-signature sig --output-certificate cert.pem --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com" > verify.txt'
         
       - name: Upload Signature to GitHub release
         uses: actions/upload-release-asset@v1
