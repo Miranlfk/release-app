@@ -63,7 +63,7 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          echo 'y' | cosign sign-blob Ballerina.zip --bundle Ballerina.bundle 
+          echo 'y' | cosign sign-blob Ballerina.zip --bundle Ballerina.bundle  
           
       - name: Verify the Release Artifact
         env:
