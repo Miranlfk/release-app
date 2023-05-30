@@ -1,3 +1,4 @@
+#publish your docker image to Docker github container registry
 name: Publish Image and Release
 
 on:
@@ -67,7 +68,6 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: echo "${{ steps.meta.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push.outputs.digest }}
-
       - name: Archive site content
         uses: thedoctor0/zip-release@master
         with:
@@ -92,24 +92,21 @@ jobs:
           asset_name: Ballerina-v${{ github.run_number }}.zip
           asset_content_type: application/zip
 
-      - name: cosign-installer
-        uses: sigstore/cosign-installer@v3.0.3
-
       - name: Sign the Release Artifact
         id: sign-display-output
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          echo 'y' | cosign sign-blob Ballerina.zip --bundle Ballerina.bundle 
+          echo 'y' | cosign sign-blob Ballerina.zip --bundle Ballerina.bundle  
           
       - name: Verify the Release Artifact
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign verify-blob Ballerina.zip --bundle Ballerina.bundle --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+          cosign verify-blob Ballerina.zip --bundle Ballerina.bundle --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/change-sign --certificate-oidc-issuer=https://token.actions.githubusercontent.com
     
       - name: Create Verify Text File
-        run: 'echo "cosign verify-blob Ballerina.zip --bundle Ballerina.bundle --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/master --certificate-oidc-issuer=https://token.actions.githubusercontent.com" > verify.txt'
+        run: 'echo "cosign verify-blob Ballerina.zip --bundle Ballerina.bundle --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/change-sign --certificate-oidc-issuer=https://token.actions.githubusercontent.com" > verify.txt'
         
       - name: Upload Signature to GitHub release
         uses: actions/upload-release-asset@v1
