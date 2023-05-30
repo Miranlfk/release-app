@@ -127,6 +127,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.new-test-release-cosign.outputs.upload_url }}
-          asset_path: ./--bundle Ballerina.bundle
-          asset_name: --bundle Ballerina.bundle
+          asset_path: ./Ballerina.bundle
+          asset_name: Ballerina.bundle
           asset_content_type: application/octet-stream
