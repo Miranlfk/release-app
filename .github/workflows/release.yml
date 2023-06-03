@@ -1,8 +1,6 @@
 name: Publish Image and Release
 
 on:
-  schedule:
-    - cron: '30 7 * * *'
   push:
     branches: [ "master" ]
     tags: [ 'v*.*.*' ]
