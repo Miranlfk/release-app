@@ -1,11 +1,7 @@
 name: Publish Image and Release
 
 on:
-  push:
-    branches: [ "master" ]
-    tags: [ 'v*.*.*' ]
-  pull_request:
-    branches: [ "master" ]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -77,8 +73,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
+          tag_name: v28
+          release_name: Release 28
 
       - name: Upload asset to GitHub release
         uses: actions/upload-release-asset@v1
@@ -87,7 +83,7 @@ jobs:
         with:
           upload_url: ${{ steps.new-test-release-cosign.outputs.upload_url }}
           asset_path: ./Ballerina.zip
-          asset_name: Ballerina-v${{ github.run_number }}.zip
+          asset_name: Ballerina-v28.zip
           asset_content_type: application/zip
 
       - name: cosign-installer
@@ -98,16 +94,16 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          echo 'y' | cosign sign-blob Ballerina.zip --output-certificate Ballerina-v${{ github.run_number }}.pem --output-signature Ballerina-v${{ github.run_number }}.sig 
+          echo 'y' | cosign sign-blob Ballerina.zip --output-certificate Ballerina-v28.pem --output-signature Ballerina-v28.sig 
           
       - name: Verify the Release Artifact
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign verify-blob Ballerina.zip --certificate Ballerina-v${{ github.run_number }}.pem --signature Ballerina-v${{ github.run_number }}.sig --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/pull/2/merge --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+          cosign verify-blob Ballerina.zip --certificate Ballerina-v28.pem --signature Ballerina-v28.sig --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/open-bundle --certificate-oidc-issuer=https://token.actions.githubusercontent.com
     
       - name: Create Verify Text File
-        run: 'echo "cosign verify-blob Ballerina-v${{ github.run_number }}.zip --certificate Ballerina-v${{ github.run_number }}.pem --signature Ballerina-v${{ github.run_number }}.sig --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/pull/2/merge --certificate-oidc-issuer=https://token.actions.githubusercontent.com" > verify.txt'
+        run: 'echo "cosign verify-blob Ballerina-v28.zip --certificate Ballerina-v28.pem --signature Ballerina-v${{ github.run_number }}.sig --certificate-identity=https://github.com/Miranlfk/release-app/.github/workflows/release.yml@refs/heads/open-bundle --certificate-oidc-issuer=https://token.actions.githubusercontent.com" > verify.txt'
         
       - name: Upload Signature to GitHub release
         uses: actions/upload-release-asset@v1
@@ -125,8 +121,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.new-test-release-cosign.outputs.upload_url }}
-          asset_path: ./Ballerina-v${{ github.run_number }}.pem
-          asset_name: Ballerina-v${{ github.run_number }}.pem
+          asset_path: ./Ballerina-v28.pem
+          asset_name: Ballerina-v28.pem
           asset_content_type: application/octet-stream
           
       - name: Upload Signature to GitHub release
@@ -135,6 +131,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.new-test-release-cosign.outputs.upload_url }}
-          asset_path: ./Ballerina-v${{ github.run_number }}.sig
-          asset_name: Ballerina-v${{ github.run_number }}.sig
+          asset_path: ./Ballerina-v28.sig
+          asset_name: Ballerina-v28.sig
           asset_content_type: application/octet-stream
